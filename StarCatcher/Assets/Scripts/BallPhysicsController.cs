@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.PlayerLoop;
 
 [RequireComponent(typeof(LineRenderer))]
 public class BallPhysicsController : MonoBehaviour
@@ -7,31 +8,44 @@ public class BallPhysicsController : MonoBehaviour
     private Vector2 startPoint;
     private bool isDragging = false;
     private bool isThrown = false;
-    private float throwStartTime;
-    private float dragDuration;
 
-    public float forceMultiplier = 5f;         // قدرت ضربه کلی
-    public float maxPower = 3f;                // بیشترین قدرت ممکن برای کشیدن
-    public float minDragTime = 0.2f;           // حداقل زمان توقف
-    public float maxDragTime = 2f;             // حداکثر زمان توقف
+    [Header("Physics Settings")]
+    public float forceMultiplier = 5f;
+    public float powerBoost = 1.2f;
+    public float maxPower = 3f;
+
+    [Header("Friction Settings")]
+    [Range(0.9f, 0.999f)]
+    public float frictionFactor = 0.98f;
+
+    [Header("Drag Limits")]
+    public float maxDragDistance = 3f;
+
+    [Header("Line Renderer Settings")]
+    public float lineStartWidth = 0.1f;
+    public float lineMiddleWidth = 0.15f;
+    public float lineEndWidth = 0.1f;
+    public Color lineColor = Color.white;
+    [Range(0f, 1f)] public float lineAlphaStart = 0.1f;
+    [Range(0f, 1f)] public float lineAlphaEnd = 0.4f;
 
     [SerializeField] LineRenderer lineRenderer;
-
+    
     void Start()
     {
         lineRenderer.positionCount = 2;
         lineRenderer.enabled = false;
+        UpdateLineRendererStyle();
     }
 
     void Update()
     {
-        // فقط وقتی هنوز پرتاب نشده دنبال کلیک باش
+        // شروع درگ (فقط روی توپ)
         if (!isThrown && Input.GetMouseButtonDown(0))
         {
             Vector2 worldPoint = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             RaycastHit2D hit = Physics2D.Raycast(worldPoint, Vector2.zero);
 
-            // اگه روی توپ کلیک شده بود
             if (hit.collider != null && hit.collider.gameObject == gameObject)
             {
                 startPoint = worldPoint;
@@ -39,46 +53,78 @@ public class BallPhysicsController : MonoBehaviour
             }
         }
 
-        // در حین کشیدن، خط نشون بده
+        // کشیدن و رسم خط
         if (isDragging)
         {
             Vector2 currentPoint = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            Vector2 dragVector = currentPoint - startPoint;
+
+            if (dragVector.magnitude > maxDragDistance)
+            {
+                dragVector = dragVector.normalized * maxDragDistance;
+                currentPoint = startPoint + dragVector;
+            }
+
             lineRenderer.enabled = true;
             lineRenderer.SetPosition(0, transform.position);
             lineRenderer.SetPosition(1, currentPoint);
         }
 
-        // وقتی کاربر ول می‌کنه
+        // ول کردن
         if (Input.GetMouseButtonUp(0) && isDragging)
         {
             Vector2 endPoint = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            Vector2 dir = (startPoint - endPoint).normalized;
-            float power = Mathf.Clamp(Vector2.Distance(startPoint, endPoint), 0f, maxPower);
+            Vector2 dragVector = endPoint - startPoint;
 
-            velocity = dir * power * forceMultiplier;
+            if (dragVector.magnitude > maxDragDistance)
+                dragVector = dragVector.normalized * maxDragDistance;
 
-            // زمان توقف بر اساس قدرت کشیدن
-            dragDuration = Mathf.Lerp(minDragTime, maxDragTime, power / maxPower);
-            throwStartTime = Time.time;
+            Vector2 dir = (-dragVector).normalized;
+            float power = Mathf.Clamp(dragVector.magnitude, 0f, maxPower);
+            float boostedPower = Mathf.Pow(power, powerBoost);
+            velocity = dir * boostedPower * forceMultiplier;
 
             isThrown = true;
             isDragging = false;
             lineRenderer.enabled = false;
         }
 
-        // حرکت توپ بعد از پرتاب
+        // حرکت توپ بعد از پرتاب با اصطکاک
         if (isThrown)
         {
-            float t = (Time.time - throwStartTime) / dragDuration;
-            velocity = Vector2.Lerp(velocity, Vector2.zero, t);  // کاهش سرعت
             transform.position += (Vector3)(velocity * Time.deltaTime);
+            velocity *= frictionFactor;
 
-            // وقتی کاملاً وایساد، وضعیت رو ریست کن
             if (velocity.magnitude < 0.01f)
             {
                 velocity = Vector2.zero;
                 isThrown = false;
             }
         }
+    }
+
+    void UpdateLineRendererStyle()
+    {
+        Gradient gradient = new Gradient();
+        gradient.SetKeys(
+            new GradientColorKey[] {
+                new GradientColorKey(lineColor, 0f),
+                new GradientColorKey(lineColor, 1f)
+            },
+            new GradientAlphaKey[] {
+                new GradientAlphaKey(lineAlphaStart, 0f),
+                new GradientAlphaKey(lineAlphaEnd, 1f)
+            }
+        );
+        lineRenderer.colorGradient = gradient;
+
+        lineRenderer.widthCurve = new AnimationCurve(
+            new Keyframe(0, lineStartWidth),
+            new Keyframe(0.5f, lineMiddleWidth),
+            new Keyframe(1, lineEndWidth)
+        );
+
+        lineRenderer.material = new Material(Shader.Find("Sprites/Default"));
+        lineRenderer.numCapVertices = 4;
     }
 }

@@ -481,9 +481,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   forceMultiplier: 5
+  powerBoost: 1.2
   maxPower: 3
-  minDragTime: 0.2
-  maxDragTime: 2
+  frictionFactor: 0.98
+  maxDragDistance: 3
+  lineStartWidth: 1
+  lineMiddleWidth: 0.1
+  lineEndWidth: 0.1
+  lineColor: {r: 1, g: 1, b: 1, a: 1}
+  lineAlphaStart: 0.1
+  lineAlphaEnd: 0.4
   lineRenderer: {fileID: 1944801198}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
