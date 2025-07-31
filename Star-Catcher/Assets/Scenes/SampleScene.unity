@@ -569,8 +569,8 @@ GameObject:
   - component: {fileID: 1921244483}
   - component: {fileID: 1921244486}
   - component: {fileID: 1921244485}
-  - component: {fileID: 1921244487}
   - component: {fileID: 1921244488}
+  - component: {fileID: 1921244487}
   m_Layer: 0
   m_Name: Circle
   m_TagString: Untagged
@@ -721,8 +721,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   rb: {fileID: 1921244486}
   lineRenderer: {fileID: 1921244488}
-  maxForceMultiplier: 10
   minForceMultiplier: 5
+  maxForceMultiplier: 10
+  maxDragDistance: 2
 --- !u!120 &1921244488
 LineRenderer:
   serializedVersion: 2

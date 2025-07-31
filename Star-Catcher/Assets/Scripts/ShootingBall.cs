@@ -7,12 +7,12 @@ public class ShootingBall : MonoBehaviour
     [SerializeField] private LineRenderer lineRenderer;
     [SerializeField] private float minForceMultiplier = 3f;
     [SerializeField] private float maxForceMultiplier = 5f;
-    [SerializeField] private float maxDragDistance = 2f;
 
     private Vector3 _initialPosition;
     private Vector2 _dragStartPos;
     private Vector2 _dragEndPos;
     private Camera _camera;
+    private float maxDragDistance = 2f;
     private bool _isDragging = false;
     private bool _isShooting = false;
 
@@ -86,11 +86,22 @@ public class ShootingBall : MonoBehaviour
 
     private void Shoot()
     {
+        
         if (_isShooting) return;
-
+        
+        Vector2 pos = _dragStartPos - _dragEndPos;
+        if (pos.y < 0)
+        {
+            return;
+        }
+        
+        Vector2 dragVector = _dragStartPos - _dragEndPos;
+        if (dragVector.magnitude < 0.7f)
+        {
+            return;
+        }
         _isShooting = true;
 
-        Vector2 dragVector = _dragStartPos - _dragEndPos;
         float dragDistance = dragVector.magnitude;
         float normalizedPower = Mathf.Clamp01(dragDistance / maxDragDistance);
         float power = Mathf.Lerp(minForceMultiplier, maxForceMultiplier, normalizedPower);
@@ -108,7 +119,7 @@ public class ShootingBall : MonoBehaviour
 
         lineRenderer.enabled = true;
         lineRenderer.SetPosition(0, transform.position);
-        lineRenderer.SetPosition(1, transform.position - (Vector3)dir); // جهت درست به سمت شوت
+        lineRenderer.SetPosition(1, transform.position - (Vector3)dir); 
     }
 
     private void SetupLineRendererGradient()
