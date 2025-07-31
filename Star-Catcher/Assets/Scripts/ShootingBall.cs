@@ -143,7 +143,7 @@ public class ShootingBall : MonoBehaviour
         
         lineRenderer.colorGradient = gradient;
     }
-    public void ResetBall()
+    private void ResetBall()
     {
         rb.velocity = Vector2.zero;
         rb.angularVelocity = 0f;
@@ -156,5 +156,19 @@ public class ShootingBall : MonoBehaviour
         _isDragging = false;
 
         lineRenderer.enabled = false;
+    }
+
+    private void OnCollisionEnter2D(Collision2D other)
+    {
+        if (other.gameObject.CompareTag("wall"))
+        {
+            ResetBall();
+        }
+
+        if (other.gameObject.CompareTag("box"))
+        {
+            Vector2 extraForce = Vector2.up * 2f;
+            rb.AddForce(extraForce, ForceMode2D.Impulse);
+        }
     }
 }
