@@ -16,6 +16,10 @@ public class ShootingBall : MonoBehaviour
     private bool _isDragging = false;
     private bool _isShooting = false;
 
+    public float a=1;
+    public float a2=0.5f;
+    public float a3=0;
+    public float a4=1;
     
     void Start()
     {
@@ -27,6 +31,7 @@ public class ShootingBall : MonoBehaviour
     
     void Update()
     {
+        SetupLineRendererGradient();
 #if UNITY_EDITOR
         HandleMouseInput();
 #else
@@ -38,7 +43,7 @@ public class ShootingBall : MonoBehaviour
 #if UNITY_EDITOR
             Vector2 currentDragPos = _camera.ScreenToWorldPoint(Input.mousePosition);
 #else
-            Vector2 currentDragPos = Input.touchCount > 0 ? cam.ScreenToWorldPoint(Input.GetTouch(0).position) : dragStartPos;
+            Vector2 currentDragPos = Input.touchCount > 0 ? _camera.ScreenToWorldPoint(Input.GetTouch(0).position) : _dragStartPos;
 #endif
             UpdateLinePreview(_dragStartPos, currentDragPos);
         }
@@ -131,8 +136,8 @@ public class ShootingBall : MonoBehaviour
                 new GradientColorKey(Color.white, 1f)
             },
             new GradientAlphaKey[] {
-                new GradientAlphaKey(1f, 0.5f),    
-                new GradientAlphaKey(0f, 1f)     
+                new GradientAlphaKey(a, a2),    
+                new GradientAlphaKey(a3, a4)     
             }
         );
         AnimationCurve widthCurve = new AnimationCurve();
